@@ -1,25 +1,36 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 
-export default function CreateContact({ navigation }) {
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
+export default function CreateContact({ navigation, route }) {
+    const { contact } = route.params || {};
+    const [firstName, setFirstName] = useState(contact?.givenName || '');
+    const [lastName, setLastName] = useState(contact?.familyName || '');
+    const [phoneNumber, setPhoneNumber] = useState(contact?.phoneNumbers[0]?.number || '');
 
     const saveContact = () => {
         if (firstName && phoneNumber) {
-            const newContact = {
-                id: Date.now(),  // Simple unique ID
+            const updatedContact = {
+                id: contact ? contact.id : Date.now(),  // Use existing ID if editing, otherwise create new ID
                 givenName: firstName,
                 familyName: lastName,
                 phoneNumbers: [{ label: 'mobile', number: phoneNumber }],
             };
 
             try {
-                const existingContacts = JSON.parse(localStorage.getItem('contacts')) || [];
-                existingContacts.push(newContact);
+                let existingContacts = JSON.parse(localStorage.getItem('contacts')) || [];
+
+                if (contact) {
+                    // If editing existing contact, find and update it
+                    existingContacts = existingContacts.map((item) => (
+                        item.id === contact.id ? updatedContact : item
+                    ));
+                } else {
+                    // Otherwise, add new contact to the list
+                    existingContacts.push(updatedContact);
+                }
+
                 localStorage.setItem('contacts', JSON.stringify(existingContacts));
-                Alert.alert('Success', 'Contact added successfully!');
+                Alert.alert('Success', 'Contact saved successfully!');
                 navigation.goBack();
             } catch (error) {
                 console.error('Failed to save contact:', error);
