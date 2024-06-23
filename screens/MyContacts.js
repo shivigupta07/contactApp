@@ -3,7 +3,6 @@ import { Text, View, FlatList, StyleSheet, TextInput, TouchableOpacity } from 'r
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { useIsFocused } from '@react-navigation/native';
-
 import ContactsCard from '../components/ContactCard';
 
 export default function MyContacts({ navigation }) {
@@ -17,7 +16,6 @@ export default function MyContacts({ navigation }) {
 
     async function getAllContacts() {
         try {
-            // Fetch contacts from local storage or a backend API.
             const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
             setMyContacts(contacts);
         } catch (error) {
@@ -30,13 +28,9 @@ export default function MyContacts({ navigation }) {
     };
 
     const handleDeleteContact = (contactId) => {
-        // Filter out the contact with the specified ID
         const updatedContacts = myContacts.filter(contact => contact.id !== contactId);
-      
-        // Update the state with the filtered contacts
         setMyContacts(updatedContacts);
-
-        // Optionally, update your local storage or backend API here
+        localStorage.setItem('contacts', JSON.stringify(updatedContacts));
     };
 
     const renderSwipeActions = (contact) => (
@@ -69,13 +63,17 @@ export default function MyContacts({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <Ionicons 
-                name='add-circle'
-                size={62}
-                color='green'
-                style={styles.addIcon}
+            <TouchableOpacity 
+                style={styles.addIconContainer}
                 onPress={() => navigation.navigate('CreateContact')}
-            />
+            >
+                <Ionicons 
+                    name='add-circle'
+                    size={62}
+                    color='green'
+                    style={styles.addIcon}
+                />
+            </TouchableOpacity>
             <View style={styles.searchContainer}>
                 <Ionicons
                     name='search'
@@ -95,8 +93,9 @@ export default function MyContacts({ navigation }) {
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderContactItem}
                 renderHiddenItem={({ item }) => renderSwipeActions(item)}
-                rightOpenValue={-150} // Width of swipeable buttons container
-                disableRightSwipe={true} // Disable right swipe on list items
+                rightOpenValue={-150}
+                disableRightSwipe={true}
+                contentContainerStyle={styles.listContent}
             />
         </View>
     );
@@ -107,11 +106,17 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'white',
     },
-    addIcon: {
-        bottom: 20,
-        right: 20,
-        position: 'absolute',
+    addIconContainer: {
+        position: 'fixed',
+        bottom: 30,
+        right: 30,
         zIndex: 1,
+        backgroundColor: 'white',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 2,
+        elevation: 5,
     },
     searchContainer: {
         flexDirection: 'row',
@@ -120,8 +125,8 @@ const styles = StyleSheet.create({
         marginTop: 16,
         marginBottom: 8,
         borderColor: 'gray',
-        borderWidth: 1,
         borderRadius: 8,
+        backgroundColor: '#f9f9f9',
     },
     searchInput: {
         flex: 1,
@@ -136,12 +141,14 @@ const styles = StyleSheet.create({
         padding: 16,
         borderBottomWidth: 1,
         borderBottomColor: '#ddd',
+        backgroundColor: 'white',
     },
     swipeActionsContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'flex-end',
         flex: 1,
+        padding: 16,
     },
     swipeAction: {
         justifyContent: 'center',
@@ -157,5 +164,8 @@ const styles = StyleSheet.create({
     },
     deleteAction: {
         backgroundColor: '#FF6347',
+    },
+    listContent: {
+        paddingBottom: 80,
     },
 });
